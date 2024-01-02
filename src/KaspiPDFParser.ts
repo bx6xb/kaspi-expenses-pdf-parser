@@ -15,7 +15,7 @@ class KaspiPDFParser {
       const data = await this.Parser(path)
       expensesDataBase = [...expensesDataBase, ...data]
     }
-    fs.writeFileSync("dist/expnses.json", JSON.stringify(expensesDataBase))
+    fs.writeFileSync("dist/expenses.json", JSON.stringify(expensesDataBase))
   }
 
   private static Parser = async (
