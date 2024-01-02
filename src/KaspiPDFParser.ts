@@ -1,7 +1,7 @@
 const fs = require("fs")
 const pdf = require("pdf-parse")
 
-type expensesDataBaseType = {
+type ExpensesDataBaseType = {
   date: string
   operation: string
   expense: number
@@ -9,10 +9,21 @@ type expensesDataBaseType = {
 }[]
 
 class KaspiPDFParser {
-  public static parse = async (path: string): Promise<expensesDataBaseType> => {
+  public static parse = async (...paths: string[]) => {
+    let expensesDataBase: ExpensesDataBaseType = []
+    for (const path of paths) {
+      const data = await this.Parser(path)
+      expensesDataBase = [...expensesDataBase, ...data]
+    }
+    fs.writeFileSync("dist/expnses.json", JSON.stringify(expensesDataBase))
+  }
+
+  private static Parser = async (
+    path: string
+  ): Promise<ExpensesDataBaseType> => {
     return await pdf(fs.readFileSync(path))
-      .then((data) => {
-        const jsData = data.text
+      .then((data: any) =>
+        data.text
           .replace(/(\-|\+) /g, ` $1`)
           .replace(
             /Перевод|Пополнение|Покупка| ₸|(?<=\d) (?=\d{3})|\(.+?\)/g,
@@ -31,22 +42,8 @@ class KaspiPDFParser {
               store: expensesData.slice(2, expensesData.length).join(" "),
             }
           })
-
-        try {
-          if (!fs.existsSync("dist")) {
-            fs.mkdirSync("dist")
-          }
-          const filename = path.split("/").pop()
-          fs.writeFileSync(
-            `dist/${filename}`.replace(".pdf", ".json"),
-            JSON.stringify(jsData)
-          )
-          console.log("File written successfully")
-        } catch (err) {
-          console.error("Error writing the file:", err)
-        }
-      })
-      .catch((err) => console.error(err))
+      )
+      .catch((err: Error) => console.error(err))
   }
 }
 
