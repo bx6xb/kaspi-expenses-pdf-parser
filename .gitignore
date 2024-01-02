@@ -1,0 +1,7 @@
+pdf
+node_modules
+*.json
+!package.json
+build
+dist
+src/*.js
