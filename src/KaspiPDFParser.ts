@@ -1,6 +1,7 @@
 const fs = require("fs")
 const pdf = require("pdf-parse")
 
+// type for expenses data base
 type ExpensesDataBaseType = {
   date: string
   operation: string
@@ -9,15 +10,30 @@ type ExpensesDataBaseType = {
 }[]
 
 class KaspiPDFParser {
+  // Applies paths to pdf files and writes parsed data in expenses.json file
   public static parse = async (...paths: string[]) => {
     let expensesDataBase: ExpensesDataBaseType = []
     for (const path of paths) {
       const data = await this.Parser(path)
       expensesDataBase = [...expensesDataBase, ...data]
     }
-    fs.writeFileSync("dist/expenses.json", JSON.stringify(expensesDataBase))
+    console.log(expensesDataBase.length)
+    expensesDataBase = this.deleteDuplicates(expensesDataBase)
+    console.log(expensesDataBase.length)
+    fs.writeFileSync("../dist/expenses.json", JSON.stringify(expensesDataBase))
   }
 
+  // Deletes duplicates from expenses data base
+  private static deleteDuplicates = (
+    arrOfObjects: ExpensesDataBaseType
+  ): ExpensesDataBaseType => {
+    const stringArr: string[] = arrOfObjects.map((obj) => JSON.stringify(obj))
+    const set: Set<string> = new Set(stringArr)
+    const arr: ExpensesDataBaseType = [...set].map((obj) => JSON.parse(obj))
+    return arr
+  }
+
+  // Paarses data from pdf file and returns parsed data
   private static Parser = async (
     path: string
   ): Promise<ExpensesDataBaseType> => {
